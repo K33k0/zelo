@@ -77,7 +77,7 @@ For a new machine, install Chromium using `npx playwright install chromium`. The
 
 ## Verification and limits
 
-- 33 calculation/validation tests and 30 browser flow tests cover the current app (including 9 overnight/date-refresh cases).
+- 34 calculation/validation tests and 36 browser flow tests cover the current app (including 9 overnight/date-refresh cases).
 - 432 native/JavaScript calculation parity checks pass, plus reminder/backup regressions.
 - Three isolated on-device storage/backup/Undo tests pass; see the 2.1 release notes.
 - Android assembly and lint pass with no reported issues.
@@ -85,3 +85,9 @@ For a new machine, install Chromium using `npx playwright install chromium`. The
 - Actual notification delivery timing and widget placement/tapping still require use on the phone. Notification permission is requested only when the user enables reminders; widget placement uses the launcher’s confirmation.
 
 This is a debug-signed personal testing build, not a Play Store release. No account, analytics, direct internet access, or hosted backend is included. Android uses native private preferences as the source of truth; bundled HTML/CSS/JS renders the UI in a restricted WebView at the original private origin. Optional backups use Android’s document provider and network-state permission to queue Drive-backed jobs. In the browser, localStorage remains the source. System Android backup is disabled; use Zelo’s explicit export or opt-in file backups before clearing data or changing phones.
+
+## Maintaining the project
+
+See [Development](docs/DEVELOPMENT.md) for clean-machine setup, architecture, formatting and test commands, and [Data and recovery](docs/DATA-AND-RECOVERY.md) for the backup schema and troubleshooting. Run `./scripts/setup.ps1` on a new Windows checkout before the checks above.
+
+Recovery now blocks ordinary writes after a load failure and preserves the unreadable original when a backup is explicitly restored. Existing logs survive backwards clock changes. The consistency calendar uses the same capacity-aware original targets as streaks.
