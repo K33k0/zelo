@@ -1,57 +1,70 @@
-import {test,expect} from './fixtures.js';
-test('create, log, edit, reload, inspect, and delete a challenge',async({page})=>{
- const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/');
- await page.getByRole('button',{name:'3,000 pushups',exact:true}).click();
- await page.getByRole('button',{name:'Create challenge',exact:true}).click();
- await expect(page.locator('.card h3')).toHaveText('3,000 pushups');
- await page.getByRole('button',{name:'Log progress'}).click();
- await page.getByRole('button',{name:'+25',exact:true}).click();
- await page.getByLabel('A note (optional)').fill('Morning set');
- await page.getByRole('button',{name:'Save progress'}).click();
- await page.reload();
- await page.locator('[data-detail]').click();
- await expect(page.getByText('Morning set',{exact:false})).toBeVisible();
- await page.getByRole('button',{name:'Edit log',exact:true}).click();
- await page.getByLabel('How many reps?').fill('50');
- await page.getByRole('button',{name:'Save changes',exact:true}).click();
- await expect(page.locator('.activity-amount')).toContainText('+50');
- await page.getByRole('button',{name:'Delete log',exact:true}).click();
- await page.getByRole('button',{name:'Delete entry',exact:true}).click();
- await expect(page.getByText('Your effort belongs here.')).toBeVisible();
- await page.getByRole('button',{name:'Delete challenge',exact:true}).click();
- await page.locator('#confirm-delete').click();
- await expect(page.getByText('Give your effort a direction.')).toBeVisible();
- expect(errors).toEqual([]);
+import { test, expect } from './fixtures.js';
+test('create, log, edit, reload, inspect, and delete a challenge', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await page.getByRole('button', { name: '3,000 pushups', exact: true }).click();
+  await page.getByRole('button', { name: 'Create challenge', exact: true }).click();
+  await expect(page.locator('.card h3')).toHaveText('3,000 pushups');
+  await page.getByRole('button', { name: 'Log progress' }).click();
+  await page.getByRole('button', { name: '+25', exact: true }).click();
+  await page.getByLabel('A note (optional)').fill('Morning set');
+  await page.getByRole('button', { name: 'Save progress' }).click();
+  await page.reload();
+  await page.locator('[data-detail]').click();
+  await expect(page.getByText('Morning set', { exact: false })).toBeVisible();
+  await page.getByRole('button', { name: 'Edit log', exact: true }).click();
+  await page.getByLabel('How many reps?').fill('50');
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(page.locator('.activity-amount')).toContainText('+50');
+  await page.getByRole('button', { name: 'Delete log', exact: true }).click();
+  await page.getByRole('button', { name: 'Delete entry', exact: true }).click();
+  await expect(page.getByText('Your effort belongs here.')).toBeVisible();
+  await page.getByRole('button', { name: 'Delete challenge', exact: true }).click();
+  await page.locator('#confirm-delete').click();
+  await expect(page.getByText('Give your effort a direction.')).toBeVisible();
+  expect(errors).toEqual([]);
 });
-test('daily goals count days; mobile and desktop fit their viewport',async({page})=>{
- await page.goto('/');
- await page.getByRole('button',{name:'3 km a day',exact:true}).click();
- await page.getByRole('button',{name:'Create challenge',exact:true}).click();
- await page.getByRole('button',{name:'Log progress'}).click();
- await page.getByLabel('How many km?').fill('3');
- await page.getByRole('button',{name:'Save progress'}).click();
- await expect(page.locator('.progress-number strong')).toContainText('1');
- await page.screenshot({path:'artifacts/mobile.png',fullPage:true});
- expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.setViewportSize({width:1280,height:900});
- await page.screenshot({path:'artifacts/desktop.png',fullPage:true});
- expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.getByRole('button',{name:'Insights',exact:false}).click();
- await expect(page.getByRole('heading',{name:'Recent activity'})).toBeVisible();
- await page.getByRole('button',{name:'Activity',exact:true}).click();
- await expect(page.locator('.activity-amount')).toContainText('+3');
+test('daily goals count days; mobile and desktop fit their viewport', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '3 km a day', exact: true }).click();
+  await page.getByRole('button', { name: 'Create challenge', exact: true }).click();
+  await page.getByRole('button', { name: 'Log progress' }).click();
+  await page.getByLabel('How many km?').fill('3');
+  await page.getByRole('button', { name: 'Save progress' }).click();
+  await expect(page.locator('.progress-number strong')).toContainText('1');
+  await page.screenshot({ path: 'artifacts/mobile.png', fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.screenshot({ path: 'artifacts/desktop.png', fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Insights', exact: false }).click();
+  await expect(page.getByRole('heading', { name: 'Recent activity' })).toBeVisible();
+  await page.getByRole('button', { name: 'Activity', exact: true }).click();
+  await expect(page.locator('.activity-amount')).toContainText('+3');
 });
-test('backup restore is validated, confirmed, and persists',async({page})=>{
- await page.goto('/');
- const c={id:'backup-id',name:'Restored reading',mode:'total',goal:100,unit:'pages',start:'2026-01-01',end:'2026-12-31',logs:[]};
- await page.evaluate(c=>window.restoreBackup(JSON.stringify({version:1,challenges:[c]})),c);
- await expect(page.getByRole('heading',{name:'Restore your progress?'})).toBeVisible();
- await page.getByRole('button',{name:'Replace and restore'}).click();
- await page.reload();
- await page.getByRole('button',{name:'Challenges',exact:true}).click();
- await expect(page.locator('.card h3')).toHaveText('Restored reading');
- await page.evaluate(()=>window.restoreBackup('{"version":1,"challenges":[{}]}'));
- await expect(page.locator('#toast')).toContainText('Could not restore');
- await expect(page.locator('.card h3')).toHaveText('Restored reading');
+test('backup restore is validated, confirmed, and persists', async ({ page }) => {
+  await page.goto('/');
+  const c = {
+    id: 'backup-id',
+    name: 'Restored reading',
+    mode: 'total',
+    goal: 100,
+    unit: 'pages',
+    start: '2026-01-01',
+    end: '2026-12-31',
+    logs: [],
+  };
+  await page.evaluate(
+    (c) => window.restoreBackup(JSON.stringify({ version: 1, challenges: [c] })),
+    c,
+  );
+  await expect(page.getByRole('heading', { name: 'Restore your progress?' })).toBeVisible();
+  await page.getByRole('button', { name: 'Replace and restore' }).click();
+  await page.reload();
+  await page.getByRole('button', { name: 'Challenges', exact: true }).click();
+  await expect(page.locator('.card h3')).toHaveText('Restored reading');
+  await page.evaluate(() => window.restoreBackup('{"version":1,"challenges":[{}]}'));
+  await expect(page.locator('#toast')).toContainText('Could not restore');
+  await expect(page.locator('.card h3')).toHaveText('Restored reading');
 });
