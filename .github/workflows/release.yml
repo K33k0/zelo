@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: write
     env:
-      ZELO_KEYSTORE_PATH: ${{ runner.temp }}/zelo.keystore
+      ZELO_KEYSTORE_PATH: ${{ github.workspace }}/zelo-signing.keystore
       ZELO_KEYSTORE_PASSWORD: ${{ secrets.ZELO_KEYSTORE_PASSWORD }}
       ZELO_KEY_ALIAS: ${{ secrets.ZELO_KEY_ALIAS }}
       ZELO_KEY_PASSWORD: ${{ secrets.ZELO_KEY_PASSWORD }}
