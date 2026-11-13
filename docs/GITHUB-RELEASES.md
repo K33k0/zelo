@@ -20,6 +20,10 @@ The local copy lives at ignored `.tools/signing/zelo.keystore`; it is never comm
 
 Keep a secure backup of the original keystore outside this checkout. GitHub secrets cannot be downloaded as a substitute for that backup. The runner restores the secret only for the release job and removes its temporary file afterwards.
 
+## Check signing without publishing
+
+Run the **Release APK** workflow manually on `main` in Actions (or use `gh workflow run release.yml --repo K33k0/zelo --ref main`). This runs CI, builds a signed APK with the repository secrets, verifies its certificate against the original identity, and uploads a signed artifact with checksums. A manual main run does not publish a Release. This is useful after restoring signing secrets or changing the build pipeline.
+
 ## Publish a version
 
 1. Update `versionName` and increase `versionCode` in `app/build.gradle`; match the version in `package.json`, `package-lock.json`, the Settings footer, and README.

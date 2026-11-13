@@ -2,6 +2,7 @@ name: Release APK
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -39,9 +40,10 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.ZELO_KEYSTORE_BASE64 }}
           RELEASE_TAG: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          if ($env:RELEASE_TAG -cne "v$version") { throw 'Tag must match package.json version.' }
+          if ($env:EVENT_NAME -eq 'push' -and $env:RELEASE_TAG -cne "v$version") { throw 'Tag must match package.json version.' }
           if ((Get-Content app/build.gradle -Raw) -notmatch "versionName '$([regex]::Escape($version))'") { throw 'Android and package versions differ.' }
           if (!(Test-Path "RELEASE-$version.md")) { throw 'Versioned release notes are required.' }
           foreach ($value in @($env:KEYSTORE_BASE64, $env:ZELO_KEYSTORE_PASSWORD, $env:ZELO_KEY_ALIAS, $env:ZELO_KEY_PASSWORD)) {
@@ -59,11 +61,21 @@ jobs:
           New-Item -ItemType Directory -Force dist | Out-Null
           $apk = "zelo-$env:ZELO_VERSION.apk"
           Copy-Item app/build/outputs/apk/release/app-release.apk "dist/$apk"
-          & "$env:ANDROID_HOME/build-tools/35.0.0/apksigner.bat" verify --print-certs "dist/$apk"
+          $certificate = & "$env:ANDROID_HOME/build-tools/35.0.0/apksigner.bat" verify --print-certs "dist/$apk"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $certificate | Write-Output
+          if (($certificate -join "`n") -notmatch 'SHA-256 digest: c0304fe6b9340cd75fc8c3d7e0f6ccfb401f496fa0cf73a04471f5d770d4952e') { throw 'APK does not match the original personal signing certificate.' }
           $hash = (Get-FileHash "dist/$apk" -Algorithm SHA256).Hash.ToLowerInvariant()
           [IO.File]::WriteAllText((Join-Path $PWD 'dist/SHA256SUMS.txt'), "$hash  $apk`n")
+      - name: Upload signed APK
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: zelo-signed-${{ github.run_id }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
       - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
