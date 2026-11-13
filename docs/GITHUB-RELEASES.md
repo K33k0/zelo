@@ -26,7 +26,7 @@ Run the **Release APK** workflow manually on `main` in Actions (or use `gh workf
 
 ## Publish a version
 
-1. Update `versionName` and increase `versionCode` in `app/build.gradle`; match the version in `package.json`, `package-lock.json`, the Settings footer, and README.
+1. Update `versionName` and increase `versionCode` in `app/build.gradle`; match the version in `package.json`, `package-lock.json`, the app header, the Settings footer, and README.
 2. Add `RELEASE-X.Y.Z.md` and run the checks in [Development](DEVELOPMENT.md).
 3. Commit and push `main`, and let CI pass.
 4. Tag that commit and push the tag:
