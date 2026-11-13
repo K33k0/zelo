@@ -2,7 +2,9 @@
 
 **Turn effort into progress.** An offline Android challenge planner built around the question: “What do I need to do today to finish on time?”
 
-**Current release: 2.3.1.** Custom challenges start with a blank Unit field so its example placeholder is visible. Templates and existing challenges retain their units. [Neutral wording, rotating placeholders, cheeky reminders and weekly-review corrections](RELEASE-2.3.md). Reminders still require explicit opt-in and outstanding work.
+**Current version: 2.3.2.** Recovery, backwards-clock handling and capacity-aware calendar fixes are described in [the 2.3.2 notes](RELEASE-2.3.2.md).
+
+**2.3.1:** Custom challenges start with a blank Unit field so its example placeholder is visible. Templates and existing challenges retain their units. [Neutral wording, rotating placeholders, cheeky reminders and weekly-review corrections](RELEASE-2.3.md). Reminders still require explicit opt-in and outstanding work.
 
 [Overnight refresh fix](RELEASE-2.2.1.md): Today updates at midnight and when returning from sleep. Untouched default log dates follow the new day; historical and explicitly chosen dates are preserved.
 
@@ -91,3 +93,5 @@ This is a debug-signed personal testing build, not a Play Store release. No acco
 See [Development](docs/DEVELOPMENT.md) for clean-machine setup, architecture, formatting and test commands, and [Data and recovery](docs/DATA-AND-RECOVERY.md) for the backup schema and troubleshooting. Run `./scripts/setup.ps1` on a new Windows checkout before the checks above.
 
 Recovery now blocks ordinary writes after a load failure and preserves the unreadable original when a backup is explicitly restored. Existing logs survive backwards clock changes. The consistency calendar uses the same capacity-aware original targets as streaks.
+
+GitHub checks pushes and pull requests; version tags publish signed APK releases. See [GitHub builds and releases](docs/GITHUB-RELEASES.md) for signing and release instructions.

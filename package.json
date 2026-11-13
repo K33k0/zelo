@@ -1,14 +1,14 @@
 {
   "name": "zelo-challenges",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "test:browser": "playwright test",
     "start": "node scripts/serve.js",
-    "format": "prettier --write \"app/src/**/*.{js,java,css,html}\" \"tests/**/*.{js,java}\" \"scripts/*.js\" \"*.{js,json,md}\" \"docs/*.md\"",
-    "format:check": "prettier --check \"app/src/**/*.{js,java,css,html}\" \"tests/**/*.{js,java}\" \"scripts/*.js\" \"*.{js,json,md}\" \"docs/*.md\""
+    "format": "prettier --write \"app/src/**/*.{js,java,css,html}\" \"tests/**/*.{js,java}\" \"scripts/*.js\" \"*.{js,json,md}\" \"docs/*.md\" \".github/**/*.yml\"",
+    "format:check": "prettier --check \"app/src/**/*.{js,java,css,html}\" \"tests/**/*.{js,java}\" \"scripts/*.js\" \"*.{js,json,md}\" \"docs/*.md\" \".github/**/*.yml\""
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

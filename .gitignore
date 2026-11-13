@@ -11,3 +11,7 @@ tmp/
 artifacts/
 dist/
 *.log
+
+# Signing material must never enter source control
+*.keystore
+*.jks

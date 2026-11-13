@@ -1,0 +1,78 @@
+name: Release APK
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+  release:
+    needs: verify
+    runs-on: windows-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    env:
+      ZELO_KEYSTORE_PATH: ${{ runner.temp }}/zelo.keystore
+      ZELO_KEYSTORE_PASSWORD: ${{ secrets.ZELO_KEYSTORE_PASSWORD }}
+      ZELO_KEY_ALIAS: ${{ secrets.ZELO_KEY_ALIAS }}
+      ZELO_KEY_PASSWORD: ${{ secrets.ZELO_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+      - uses: gradle/actions/setup-gradle@4c125117fe7c5aed11272ec4213f602f012f89f2 # v5
+      - name: Validate version and restore signing key
+        shell: pwsh
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ZELO_KEYSTORE_BASE64 }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:RELEASE_TAG -cne "v$version") { throw 'Tag must match package.json version.' }
+          if ((Get-Content app/build.gradle -Raw) -notmatch "versionName '$([regex]::Escape($version))'") { throw 'Android and package versions differ.' }
+          if (!(Test-Path "RELEASE-$version.md")) { throw 'Versioned release notes are required.' }
+          foreach ($value in @($env:KEYSTORE_BASE64, $env:ZELO_KEYSTORE_PASSWORD, $env:ZELO_KEY_ALIAS, $env:ZELO_KEY_PASSWORD)) {
+            if ([string]::IsNullOrWhiteSpace($value)) { throw 'All four ZELO signing secrets must be configured.' }
+          }
+          [IO.File]::WriteAllBytes($env:ZELO_KEYSTORE_PATH, [Convert]::FromBase64String($env:KEYSTORE_BASE64))
+          "ZELO_VERSION=$version" >> $env:GITHUB_ENV
+      - name: Build signed APK
+        shell: pwsh
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./gradlew.bat --no-daemon --console=plain assembleRelease lintRelease
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $apk = "zelo-$env:ZELO_VERSION.apk"
+          Copy-Item app/build/outputs/apk/release/app-release.apk "dist/$apk"
+          & "$env:ANDROID_HOME/build-tools/35.0.0/apksigner.bat" verify --print-certs "dist/$apk"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $hash = (Get-FileHash "dist/$apk" -Algorithm SHA256).Hash.ToLowerInvariant()
+          [IO.File]::WriteAllText((Join-Path $PWD 'dist/SHA256SUMS.txt'), "$hash  $apk`n")
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create $env:RELEASE_TAG "dist/zelo-$env:ZELO_VERSION.apk" dist/SHA256SUMS.txt --verify-tag --title "Zelo $env:ZELO_VERSION" --notes-file "RELEASE-$env:ZELO_VERSION.md"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Remove signing key
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path -LiteralPath $env:ZELO_KEYSTORE_PATH) { Remove-Item -LiteralPath $env:ZELO_KEYSTORE_PATH -Force }

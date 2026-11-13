@@ -1,8 +1,34 @@
 plugins { id 'com.android.application' }
+
+// Local personal signing key stays in ignored .tools; CI supplies it via Actions secrets.
+def keyPath = System.getenv('ZELO_KEYSTORE_PATH')
+def localKey = rootProject.file('.tools/signing/zelo.keystore')
+if (!keyPath && localKey.exists()) keyPath = localKey.absolutePath
 android {
     namespace 'com.stride.challenges'
     compileSdk 35
-    defaultConfig { applicationId 'com.stride.challenges'; minSdk 26; targetSdk 35; versionCode 7; versionName '2.3.1'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
+    defaultConfig {
+        applicationId 'com.stride.challenges'
+        minSdk 26
+        targetSdk 35
+        versionCode 8
+        versionName '2.3.2'
+        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+    }
+    signingConfigs {
+        personal {
+            if (keyPath) {
+                storeFile file(keyPath)
+                storePassword System.getenv('ZELO_KEYSTORE_PASSWORD') ?: 'android'
+                keyAlias System.getenv('ZELO_KEY_ALIAS') ?: 'androiddebugkey'
+                keyPassword System.getenv('ZELO_KEY_PASSWORD') ?: 'android'
+            }
+        }
+    }
+    buildTypes {
+        debug { if (keyPath) signingConfig signingConfigs.personal }
+        release { if (keyPath) signingConfig signingConfigs.personal }
+    }
     useLibrary 'android.test.runner'
     useLibrary 'android.test.base'
 }

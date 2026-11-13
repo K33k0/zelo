@@ -4,7 +4,7 @@ Push-Location (Split-Path $PSScriptRoot -Parent)
 try {
     if (Test-Path '.tools/jdk/jdk-17.0.17+10') { $env:JAVA_HOME = (Resolve-Path '.tools/jdk/jdk-17.0.17+10').Path }
     if (Test-Path '.tools/android-sdk') { $env:ANDROID_HOME = (Resolve-Path '.tools/android-sdk').Path }
-    $env:GRADLE_USER_HOME = Join-Path (Get-Location) '.tools/gradle-cache'
+    if (!$env:GRADLE_USER_HOME) { $env:GRADLE_USER_HOME = Join-Path (Get-Location) '.tools/gradle-cache' }
     if (Test-Path '.tools/gradle-8.11.1/bin/gradle.bat') { & '.tools/gradle-8.11.1/bin/gradle.bat' --no-daemon --console=plain assembleDebug lintDebug }
     elseif (Test-Path './gradlew.bat') { & './gradlew.bat' --no-daemon --console=plain assembleDebug lintDebug }
     else { throw 'Open this project in Android Studio to install the Android SDK and Gradle.' }
