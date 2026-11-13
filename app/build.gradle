@@ -1,0 +1,9 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.stride.challenges'
+    compileSdk 35
+    defaultConfig { applicationId 'com.stride.challenges'; minSdk 26; targetSdk 35; versionCode 7; versionName '2.3.1'; testInstrumentationRunner 'android.test.InstrumentationTestRunner' }
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

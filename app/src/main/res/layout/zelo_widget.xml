@@ -1,0 +1,13 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_body" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="18dp" android:background="@drawable/widget_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/widget_brand" android:textColor="#A78BFA" android:textSize="12sp" android:textStyle="bold"/>
+        <TextView android:id="@+id/widget_next" android:layout_width="60dp" android:layout_height="30dp" android:text="@string/widget_next" android:textColor="#F4F5FF" android:textSize="12sp" android:gravity="center" android:contentDescription="@string/widget_next_description"/>
+    </LinearLayout>
+    <TextView android:id="@+id/widget_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end" android:textColor="#F4F5FF" android:textSize="17sp" android:textStyle="bold"/>
+    <TextView android:id="@+id/widget_due" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:textColor="#C9C7DD" android:textSize="12sp"/>
+    <ProgressBar android:id="@+id/widget_progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="4dp" android:layout_marginTop="13dp" android:progressTint="#A78BFA" android:progressBackgroundTint="#33344D"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="12dp" android:orientation="horizontal">
+        <TextView android:id="@+id/widget_add" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp" android:gravity="center" android:background="@drawable/widget_button" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold"/>
+        <TextView android:id="@+id/widget_undo" android:layout_width="0dp" android:layout_weight="1" android:layout_height="44dp" android:gravity="center" android:textColor="#A78BFA" android:textSize="12sp" android:visibility="gone"/>
+    </LinearLayout>
+</LinearLayout>

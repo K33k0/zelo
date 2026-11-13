@@ -1,0 +1,1 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application><uses-library android:name="android.test.runner"/><provider android:name="com.stride.challenges.test.FakeBackupProvider" android:authorities="com.stride.challenges.test.backup" android:exported="true"/></application></manifest>

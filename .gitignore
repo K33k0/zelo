@@ -1,0 +1,13 @@
+.gradle/
+**/build/
+local.properties
+.tools/
+node_modules/
+test-results/
+playwright-report/
+tmp/
+
+# Generated previews and installable builds
+artifacts/
+dist/
+*.log
