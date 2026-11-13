@@ -94,6 +94,11 @@ public class MainActivity extends Activity {
             if(revision>=0)runOnUiThread(()->{ZeloWidget.updateAll(MainActivity.this);ReminderReceiver.scheduleAll(MainActivity.this);ReminderReceiver.refreshNotifications(MainActivity.this);BackupService.schedule(MainActivity.this,false);});
             return revision;
         }
+        @JavascriptInterface public int restoreData(String data,String expectedRaw){
+            int revision=ProgressStore.restore(MainActivity.this,data,expectedRaw);
+            if(revision>=0)runOnUiThread(()->ProgressStore.changed(MainActivity.this));
+            return revision;
+        }
         @JavascriptInterface public void requestNotifications(){runOnUiThread(()->{
             if(android.os.Build.VERSION.SDK_INT>=33&&checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},20);
         });}

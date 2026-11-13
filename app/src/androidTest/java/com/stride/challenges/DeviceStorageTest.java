@@ -38,5 +38,15 @@ public class DeviceStorageTest extends InstrumentationTestCase {
   assertEquals(1,ProgressStore.save(isolated,data().toString(),0));assertTrue(ProgressStore.quickAdd(isolated,"qa"));assertNotNull(ProgressStore.undoEntry(isolated,"qa"));
   assertEquals(-1,ProgressStore.save(isolated,data().toString(),1));assertTrue(ProgressStore.undoWidget(isolated,"qa"));assertEquals(0,new JSONObject(ProgressStore.read(isolated)).getJSONArray("challenges").getJSONObject(0).getJSONArray("logs").length());assertFalse(ProgressStore.undoWidget(isolated,"qa"));
  }
+ public void testRecoveryPreservesMalformedOriginalAndChecksSnapshot() throws Exception {
+  String broken="broken JSON";isolated.getSharedPreferences("zelo",0).edit().putString("data",broken).commit();
+  assertEquals(-1,ProgressStore.restore(isolated,data().toString(),"stale snapshot"));assertEquals(broken,ProgressStore.read(isolated));
+  assertEquals(1,ProgressStore.restore(isolated,data().toString(),broken));assertEquals(broken,isolated.getSharedPreferences("zelo",0).getString("recovery-data",null));
+  assertEquals(-1,ProgressStore.restore(isolated,data().toString(),broken));
+ }
+ public void testRecoveryAdvancesRevisionOfInvalidChallenge() throws Exception {
+  String broken=new JSONObject().put("version",2).put("revision",7).put("challenges",new JSONArray().put(new JSONObject().put("id","invalid"))).toString();
+  isolated.getSharedPreferences("zelo",0).edit().putString("data",broken).commit();assertEquals(8,ProgressStore.restore(isolated,data().toString(),broken));assertEquals(-1,ProgressStore.save(isolated,data().toString(),7));
+ }
  @Override protected void tearDown() throws Exception {for(String name:new String[]{"zelo","zelo-backup","zelo-widget-undo"})isolated.getSharedPreferences(name,0).edit().clear().commit();super.tearDown();}
 }

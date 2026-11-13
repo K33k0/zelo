@@ -16,6 +16,20 @@ public final class ProgressStore {
             return revision+1;
         }catch(Exception e){return -1;}
     }
+    /** Explicit recovery uses the exact unreadable snapshot as its concurrency token. */
+    public static synchronized int restore(Context context,String text,String expectedRaw){
+        String old=read(context);
+        if(old==null||!old.equals(expectedRaw)||text.length()>5_000_000)return -1;
+        try{
+            JSONObject data=new JSONObject(text);data.getJSONArray("challenges");
+            int revision=0;
+            try{revision=new JSONObject(old).optInt("revision",0);}catch(JSONException ignored){/* Malformed JSON is recoverable too. */}
+            data.put("version",2).put("revision",revision+1);
+            // Preserve the unreadable original atomically with its replacement.
+            if(!context.getSharedPreferences("zelo",0).edit().putString("recovery-data",old).putString("data",data.toString()).commit())return -1;
+            return revision+1;
+        }catch(Exception e){return -1;}
+    }
     public static JSONArray challenges(Context c){try{String raw=read(c);return raw==null?new JSONArray():new JSONObject(raw).getJSONArray("challenges");}catch(Exception e){return new JSONArray();}}
     public static synchronized boolean quickAdd(Context context,String id){
         try{

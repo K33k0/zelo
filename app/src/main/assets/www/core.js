@@ -34,6 +34,7 @@ export function allocate(c,amount,ds){
  ordered.forEach((item,i)=>{const share=Math.min(item.cap,left/(ordered.length-i));result[item.date]=share;left=Math.max(0,left-share);});
  return {amounts:result,shortfall:left<1e-7?0:left};
 }
+export const originalTargets=c=>allocate(c,c.goal,dates(c)).amounts;
 export function stats(c,date=today()){
  const ds=dates(c),logs=c.logs.filter(l=>l.date<=date),byDay={};logs.forEach(l=>byDay[l.date]=(byDay[l.date]||0)+l.amount);
  const total=logs.reduce((s,l)=>s+l.amount,0),duration=daysBetween(c.start,c.end),elapsed=Math.max(0,Math.min(duration,daysBetween(c.start,date)));
@@ -111,7 +112,7 @@ export function validateChallenge(c){
  if(c.capacity&&[c.capacity.weekday,c.capacity.weekend].some(n=>Math.abs(n*100-Math.round(n*100))>1e-5))throw Error('Daily limits can have up to two decimal places.');
  if(c.seriesId!==undefined&&typeof c.seriesId!=='string')throw Error('Invalid challenge series.');
  if(c.adjustments!==undefined&&(!Array.isArray(c.adjustments)||c.adjustments.some(a=>!validDate(a.date)||!validDate(a.end)||!validDate(a.oldEnd)||!Number.isFinite(a.perSession)||a.perSession<0)))throw Error('Invalid plan history.');
- const ids=new Set();for(const l of c.logs){if(!l||typeof l.id!=='string'||ids.has(l.id)||!Number.isFinite(l.amount)||l.amount<=0||l.amount>1e9||!validDate(l.date)||l.date<c.start||l.date>c.end||l.date>today()||typeof l.note!=='string'||l.note.length>500)throw Error('A log has an invalid amount, date, or note.');ids.add(l.id);}
+ const ids=new Set();for(const l of c.logs){if(!l||typeof l.id!=='string'||ids.has(l.id)||!Number.isFinite(l.amount)||l.amount<=0||l.amount>1e9||!validDate(l.date)||l.date<c.start||l.date>c.end||typeof l.note!=='string'||l.note.length>500)throw Error('A log has an invalid amount, date, or note.');ids.add(l.id);}
  return c;
 }
 export function parseBackup(text){const data=JSON.parse(text);if(![1,2].includes(data.version)||!Array.isArray(data.challenges)||data.challenges.length>1000)throw Error('This is not a supported Zelo backup.');data.challenges.forEach(validateChallenge);if(new Set(data.challenges.map(c=>c.id)).size!==data.challenges.length)throw Error('Duplicate challenge IDs.');return data.challenges;}
