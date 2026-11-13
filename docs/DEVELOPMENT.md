@@ -45,4 +45,4 @@ Normal Android saves compare revisions to reject stale forms. Recovery compares 
 
 ## Git
 
-The repository uses `main`. Commit source, tests and documentation together when they describe one fix; keep formatting separate from behavior changes. Run the relevant checks before committing. The private origin is `https://github.com/K33k0/zelo`. Existing local Git author settings are used. See [GitHub builds and releases](GITHUB-RELEASES.md) for CI and tagged releases.
+The repository uses `main`. Commit source, tests and documentation together when they describe one fix; keep formatting separate from behavior changes. Run the relevant checks before committing. The public, proprietary-source origin is `https://github.com/K33k0/zelo`. Existing local Git author settings are used. See [GitHub builds and releases](GITHUB-RELEASES.md) for CI and tagged releases.

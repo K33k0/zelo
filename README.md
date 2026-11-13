@@ -95,3 +95,9 @@ See [Development](docs/DEVELOPMENT.md) for clean-machine setup, architecture, fo
 Recovery now blocks ordinary writes after a load failure and preserves the unreadable original when a backup is explicitly restored. Existing logs survive backwards clock changes. The consistency calendar uses the same capacity-aware original targets as streaks.
 
 GitHub checks pushes and pull requests; version tags publish signed APK releases. See [GitHub builds and releases](docs/GITHUB-RELEASES.md) for signing and release instructions.
+
+## Ownership, privacy and commercial plans
+
+Zelo's original source and branding are proprietary: **Copyright © 2026 Kieran Wynne. All rights reserved.** Public visibility does not grant an open-source license. See [LICENSE](LICENSE) and [third-party notices](THIRD-PARTY-NOTICES.md). Official binaries currently have permission for personal, non-commercial use as described in LICENSE.
+
+Read the [privacy policy](PRIVACY.md) and [security reporting policy](SECURITY.md). The current GitHub APK is a personal beta. A future commercial release will use the [Google Play preparation plan](docs/PLAY-STORE.md), with a separate production signing route.

@@ -1,6 +1,6 @@
 # GitHub builds and releases
 
-Repository: https://github.com/K33k0/zelo (private).
+Repository: https://github.com/K33k0/zelo (public, proprietary source).
 
 ## Every push and pull request
 
@@ -10,9 +10,17 @@ Preview APKs use a disposable runner debug key. They are intended for a clean te
 
 Actions are pinned to exact commits; Dependabot checks Actions and npm monthly. Workflows run with read-only repository access except the final release job, which needs write access to publish its APK and checksum. Pull requests never receive signing secrets.
 
+## Repository and release protections
+
+Main requires a pull request, resolved discussions, linear history and an up-to-date `verify` check from GitHub Actions. Force pushes and deletion are blocked. With one maintainer, a second-person approval is not required; CODEOWNERS identifies the maintainer for review. Version tags are administrator-created and cannot be moved or deleted, including by administrators under the active immutable-tag rule.
+
+The release job uses the `release` environment, restricted to main and `v*` tags, and waits for K33k0 to approve it. Self-approval is allowed because this is a solo-maintainer repository; administrative bypass is disabled. Signing secrets are moved out of repository scope into this environment. Historical workflows without the environment therefore cannot use them. A release commit must also be on main. Do not approve an unexpected run or an unreviewed workflow change.
+
+After pushing a version tag, open the Actions run and use **Review deployments → release → Approve and deploy** to let signing and publication continue. A manual signing check also needs this approval. This gate is separate from passing CI.
+
 ## Signing
 
-The four Actions repository secrets are `ZELO_KEYSTORE_BASE64`, `ZELO_KEYSTORE_PASSWORD`, `ZELO_KEY_ALIAS`, and `ZELO_KEY_PASSWORD`. The key is the original personal debug signing identity, reused intentionally so installed Stride/Zelo builds can update without losing private data. This is personal APK distribution, not a Play Store production-signing setup. Do not rotate or regenerate it casually.
+The four Actions secrets in the protected `release` environment are `ZELO_KEYSTORE_BASE64`, `ZELO_KEYSTORE_PASSWORD`, `ZELO_KEY_ALIAS`, and `ZELO_KEY_PASSWORD`. The key is the original personal debug signing identity, reused intentionally so installed Stride/Zelo builds can update without losing private data. This is personal APK distribution, not a Play Store production-signing setup. Do not rotate or regenerate it casually.
 
 Original certificate SHA-256: `C0:30:4F:E6:B9:34:0C:D7:5F:C8:C3:D7:E0:F6:CC:FB:40:1F:49:6F:A0:CF:73:A0:44:71:F5:D7:70:D4:95:2E`.
 
@@ -22,7 +30,7 @@ Keep a secure backup of the original keystore outside this checkout. GitHub secr
 
 ## Check signing without publishing
 
-Run the **Release APK** workflow manually on `main` in Actions (or use `gh workflow run release.yml --repo K33k0/zelo --ref main`). This runs CI, builds a signed APK with the repository secrets, verifies its certificate against the original identity, and uploads a signed artifact with checksums. A manual main run does not publish a Release. This is useful after restoring signing secrets or changing the build pipeline.
+Run the **Release APK** workflow manually on `main` in Actions (or use `gh workflow run release.yml --repo K33k0/zelo --ref main`). This runs CI, builds a signed APK with the environment secrets, verifies its certificate against the original identity, and uploads a signed artifact with checksums. A manual main run does not publish a Release. This is useful after restoring signing secrets or changing the build pipeline.
 
 ## Publish a version
 

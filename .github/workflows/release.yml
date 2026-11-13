@@ -15,6 +15,7 @@ jobs:
       contents: read
   release:
     needs: verify
+    environment: release
     runs-on: windows-latest
     timeout-minutes: 25
     permissions:
@@ -26,6 +27,8 @@ jobs:
       ZELO_KEY_PASSWORD: ${{ secrets.ZELO_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
@@ -42,6 +45,10 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
+          git fetch origin main --no-tags
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE -ne 0) { throw 'Release source must be a commit on main.' }
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
           if ($env:EVENT_NAME -eq 'push' -and $env:RELEASE_TAG -cne "v$version") { throw 'Tag must match package.json version.' }
           if ((Get-Content app/build.gradle -Raw) -notmatch "versionName '$([regex]::Escape($version))'") { throw 'Android and package versions differ.' }
