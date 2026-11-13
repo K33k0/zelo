@@ -11,7 +11,7 @@
     "format:check": "prettier --check \"app/src/**/*.{js,java,css,html}\" \"tests/**/*.{js,java}\" \"scripts/*.js\" \"*.{js,json,md}\" \"docs/*.md\" \".github/**/*.yml\""
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.0",
     "prettier": "3.10.1",
     "prettier-plugin-java": "2.11.0"
   }
