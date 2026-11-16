@@ -236,7 +236,12 @@ function title(text) {
 const logs = () =>
   challenges
     .flatMap((c) => c.logs.map((l) => ({ ...l, challenge: c })))
-    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+    .sort(
+      (a, b) =>
+        b.date.localeCompare(a.date) ||
+        (b.time || '').localeCompare(a.time || '') ||
+        b.id.localeCompare(a.id),
+    );
 function go(next) {
   view = next;
   selected = null;
@@ -421,9 +426,13 @@ function challengeForm(id = null, template = null) {
     }
   };
 }
-function saveLog(c, amount, date, note = '', id = null) {
+function localTime() {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
+function saveLog(c, amount, date, note = '', id = null, time = localTime()) {
   if (date > today()) throw Error('Choose today or an earlier date for new or edited progress.');
-  const entry = { id: id || uid(), amount, date, note };
+  const entry = { ...c.logs.find((l) => l.id === id), id: id || uid(), amount, date, time, note };
   const exists = id && c.logs.some((l) => l.id === id);
   const next = {
     ...c,
@@ -480,7 +489,7 @@ function logForm(id, logId = null) {
   }
   const max = c.end < today() ? c.end : today();
   open(
-    `${title(l ? 'Edit your effort' : 'Put it on the board.')}<p>${esc(c.name)}</p><form id="log-form"><label for="amount">How many ${esc(c.unit)}?</label><input id="amount" name="amount" type="number" step="any" min="0.01" max="1000000000" inputmode="decimal" required value="${l?.amount || ''}" autofocus><div class="quick">${(run(c) ? [1, 3, 5] : [10, 25, 50]).map((n) => `<button type="button" data-add="${n}">+${n}</button>`).join('')}</div><label for="date">Date</label><input id="date" name="date" type="date" min="${c.start}" max="${max}" value="${l?.date || max}" required><label for="note">A note (optional)</label><textarea id="note" name="note" maxlength="500" rows="2">${esc(l?.note || '')}</textarea><p class="error" id="form-error" role="alert"></p><button class="primary full" type="submit">${l ? 'Save changes' : 'Save progress'}</button></form>`,
+    `${title(l ? 'Edit your effort' : 'Put it on the board.')}<p>${esc(c.name)}</p><form id="log-form"><label for="amount">How many ${esc(c.unit)}?</label><input id="amount" name="amount" type="number" step="any" min="0.01" max="1000000000" inputmode="decimal" required value="${l?.amount || ''}" autofocus><div class="quick">${(run(c) ? [1, 3, 5] : [10, 25, 50]).map((n) => `<button type="button" data-add="${n}">+${n}</button>`).join('')}</div><label for="date">Date</label><input id="date" name="date" type="date" min="${c.start}" max="${max}" value="${l?.date || max}" required><label for="time">Time</label><input id="time" name="time" type="time" value="${l ? l.time || '' : localTime()}" ${l ? '' : 'required'}><p class="help">Local time of the effort. Older entries can leave this blank if unknown.</p><label for="note">A note (optional)</label><textarea id="note" name="note" maxlength="500" rows="2">${esc(l?.note || '')}</textarea><p class="error" id="form-error" role="alert"></p><button class="primary full" type="submit">${l ? 'Save changes' : 'Save progress'}</button></form>`,
   );
   const logDraft = $('#log-form');
   logDraft.dataset.challengeId = c.id;
@@ -494,7 +503,16 @@ function logForm(id, logId = null) {
     e.preventDefault();
     const f = new FormData(e.target);
     try {
-      if (saveLog(c, Number(f.get('amount')), f.get('date'), f.get('note').trim(), l?.id)) {
+      if (
+        saveLog(
+          c,
+          Number(f.get('amount')),
+          f.get('date'),
+          f.get('note').trim(),
+          l?.id,
+          f.get('time') || (l ? null : localTime()),
+        )
+      ) {
         close();
         render();
         toast('Progress saved. That effort counts.');
@@ -618,7 +636,7 @@ function activityRows(items) {
     items
       .map(
         (l) =>
-          `<div class="activity-row"><span class="log-marker">${run(l.challenge) ? '↗' : '+'}</span><div class="activity-text"><b>${esc(l.challenge.name)}</b><p>${dateLabel(l.date)} ${l.date.slice(0, 4)}${l.note ? ' · ' + esc(l.note) : ''}</p></div><span class="activity-amount">+${fmt(l.amount)} <small>${esc(l.challenge.unit)}</small></span><button class="text-button" data-edit-log="${esc(l.id)}" data-cid="${esc(l.challenge.id)}" aria-label="Edit log">Edit</button><button class="text-button danger" data-delete-log="${esc(l.id)}" data-cid="${esc(l.challenge.id)}" aria-label="Delete log">×</button></div>`,
+          `<div class="activity-row"><span class="log-marker">${run(l.challenge) ? '↗' : '+'}</span><div class="activity-text"><b>${esc(l.challenge.name)}</b><p>${dateLabel(l.date)} ${l.date.slice(0, 4)} · ${l.time ? esc(l.time) : 'Time not recorded'}${l.note ? ' · ' + esc(l.note) : ''}</p></div><span class="activity-amount">+${fmt(l.amount)} <small>${esc(l.challenge.unit)}</small></span><button class="text-button" data-edit-log="${esc(l.id)}" data-cid="${esc(l.challenge.id)}" aria-label="Edit log">Edit</button><button class="text-button danger" data-delete-log="${esc(l.id)}" data-cid="${esc(l.challenge.id)}" aria-label="Delete log">×</button></div>`,
       )
       .join('') ||
     '<div class="quiet-card"><h3>Your effort belongs here.</h3><p>Add your first log to start your story.</p></div>'
@@ -682,6 +700,32 @@ function activity() {
     );
   };
 }
+function timeOfDayInsights() {
+  const periods = [
+    ['Morning', '06:00–11:59', 6, 12],
+    ['Afternoon', '12:00–17:59', 12, 18],
+    ['Evening', '18:00–23:59', 18, 24],
+    ['Night', '00:00–05:59', 0, 6],
+  ];
+  return `<section class="card" id="time-of-day-insights"><h2>Effort by time of day</h2><p class="help">All logged effort through today, grouped by the local time recorded for each entry.</p>${
+    challenges
+      .map((c) => {
+        const entries = c.logs.filter((l) => l.date <= today());
+        const totals = periods.map(([, , start, end]) =>
+          entries
+            .filter(
+              (l) =>
+                l.time && Number(l.time.slice(0, 2)) >= start && Number(l.time.slice(0, 2)) < end,
+            )
+            .reduce((sum, l) => sum + l.amount, 0),
+        );
+        const max = Math.max(1, ...totals);
+        const unknown = entries.filter((l) => !l.time);
+        return `<h3>${esc(c.name)}</h3><p class="help">${esc(c.unit)}</p><div class="bar-chart">${periods.map(([label, range], i) => `<div class="bar-group"><small>${fmt(totals[i])}</small><div class="bar" style="height:${(totals[i] / max) * 110}px"></div><small>${label}</small><small>${range}</small></div>`).join('')}</div>${unknown.length ? `<p class="help">Time not recorded: ${fmt(unknown.reduce((sum, l) => sum + l.amount, 0))} ${esc(c.unit)} across ${unknown.length} entries. Add times in Activity to include them.</p>` : ''}`;
+      })
+      .join('') || '<p>Log effort with a time to see your pattern.</p>'
+  }</section>`;
+}
 function insights() {
   const entries = logs(),
     activeDays = new Set(entries.map((l) => l.date));
@@ -698,12 +742,13 @@ function insights() {
       false,
     ) +
     weeklyReviews() +
+    timeOfDayInsights() +
     `<div class="insight-grid"><div class="stat-box"><small>Total entries</small><strong>${entries.length}</strong><small>Efforts worth counting</small></div><div class="stat-box"><small>Active days</small><strong>${activeDays.size}</strong><small>Days you showed up</small></div><div class="stat-box"><small>Completed challenges</small><strong>${challenges.filter((c) => stats(c).completed).length}</strong><small>Chapters finished</small></div></div><section class="card"><div class="section-heading"><h2>Recent activity</h2><span>Last 7 days · number of logs</span></div><div class="bar-chart">${week.map((d) => `<div class="bar-group"><small>${d.count}</small><div class="bar" style="height:${(d.count / max) * 110}px"></div><small>${weekdays[weekday(d.date)]}</small></div>`).join('')}</div></section><div class="toolbar"><h2>Challenge breakdown</h2></div><div class="cards">${challenges.map(card).join('') || empty()}</div>`;
 }
 function settings() {
   const native = !!window.StrideAndroid;
   open(
-    `${title('Settings')}<div class="about-brand"><span class="product-mark">Z</span><div><strong>Zelo · by ecletra</strong><p>Turn effort into progress.</p></div></div><h3>Keep your progress safe</h3><div id="auto-backup-status"></div>${native ? '<button class="primary full" data-action="backup-setup">Set up automatic backup</button>' : '<p class="help">Automatic Drive/file backups are available in the Android app.</p>'}<details class="options-panel"><summary>Manual backup & restore</summary><button class="secondary full" data-action="export">Export a backup</button><button class="secondary full" data-action="import">Restore from a file</button><p class="help">Restoring replaces your current challenges. You’ll review the file before confirming.</p></details><h3>Make logging easier</h3>${native ? '<button class="secondary full" data-action="widget">Add home-screen widget</button><button class="secondary full" data-action="notifications">Notification settings</button>' : '<p class="help">Widgets and reminders are available on Android.</p>'}<p class="help">Set reminders inside a challenge’s Schedule & reminders. Delivery may be delayed by battery settings.</p><details class="options-panel"><summary>About Zelo</summary><p>Zelo is inspired by Zelos, the Greek spirit of zeal and emulation. Your benchmark is your own previous chapter.</p><p class="help">Independent software. Cleverly built. No health-data integrations.</p><p class="help"><a href="https://github.com/K33k0/zelo/blob/main/PRIVACY.md" data-external="https://github.com/K33k0/zelo/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">Privacy policy</a> · <a href="https://github.com/K33k0/zelo/security/policy" data-external="https://github.com/K33k0/zelo/security/policy" target="_blank" rel="noopener noreferrer">Report a security issue</a></p></details><div class="brand-footer"><span>Zelo 2.3.2</span><b>by ecletra</b></div>`,
+    `${title('Settings')}<div class="about-brand"><span class="product-mark">Z</span><div><strong>Zelo · by ecletra</strong><p>Turn effort into progress.</p></div></div><h3>Keep your progress safe</h3><div id="auto-backup-status"></div>${native ? '<button class="primary full" data-action="backup-setup">Set up automatic backup</button>' : '<p class="help">Automatic Drive/file backups are available in the Android app.</p>'}<details class="options-panel"><summary>Manual backup & restore</summary><button class="secondary full" data-action="export">Export a backup</button><button class="secondary full" data-action="import">Restore from a file</button><p class="help">Restoring replaces your current challenges. You’ll review the file before confirming.</p></details><h3>Make logging easier</h3>${native ? '<button class="secondary full" data-action="widget">Add home-screen widget</button><button class="secondary full" data-action="notifications">Notification settings</button>' : '<p class="help">Widgets and reminders are available on Android.</p>'}<p class="help">Set reminders inside a challenge’s Schedule & reminders. Delivery may be delayed by battery settings.</p><details class="options-panel"><summary>About Zelo</summary><p>Zelo is inspired by Zelos, the Greek spirit of zeal and emulation. Your benchmark is your own previous chapter.</p><p class="help">Independent software. Cleverly built. No health-data integrations.</p><p class="help"><a href="https://github.com/K33k0/zelo/blob/main/PRIVACY.md" data-external="https://github.com/K33k0/zelo/blob/main/PRIVACY.md" target="_blank" rel="noopener noreferrer">Privacy policy</a> · <a href="https://github.com/K33k0/zelo/security/policy" data-external="https://github.com/K33k0/zelo/security/policy" target="_blank" rel="noopener noreferrer">Report a security issue</a></p></details><div class="brand-footer"><span>Zelo 2.4.0</span><b>by ecletra</b></div>`,
   );
   updateBackupStatus();
 }
