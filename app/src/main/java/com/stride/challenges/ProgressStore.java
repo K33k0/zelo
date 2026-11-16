@@ -81,6 +81,12 @@ public final class ProgressStore {
         JSONObject log = new JSONObject()
           .put("id", UUID.randomUUID().toString())
           .put("date", LocalDate.now().toString())
+          .put(
+            "time",
+            java.time.LocalTime.now().format(
+              java.time.format.DateTimeFormatter.ofPattern("HH:mm", java.util.Locale.ROOT)
+            )
+          )
           .put("amount", amount)
           .put("note", "Home-screen quick add");
         c.getJSONArray("logs").put(log);

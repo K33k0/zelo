@@ -451,7 +451,8 @@ export function validateChallenge(c) {
       l.date < c.start ||
       l.date > c.end ||
       typeof l.note !== 'string' ||
-      l.note.length > 500
+      l.note.length > 500 ||
+      (l.time != null && (typeof l.time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(l.time)))
     )
       throw Error('A log has an invalid amount, date, or note.');
     ids.add(l.id);

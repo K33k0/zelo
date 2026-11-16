@@ -2,7 +2,9 @@
 
 **Turn effort into progress.** An offline Android challenge planner built around the question: “What do I need to do today to finish on time?”
 
-**Current version: 2.3.2.** Recovery, backwards-clock handling and capacity-aware calendar fixes are described in [the 2.3.2 notes](RELEASE-2.3.2.md).
+**Current version: 2.4.0.** Editable log times and effort by time of day are described in [the 2.4.0 notes](RELEASE-2.4.0.md).
+
+**2.3.2:** Recovery, backwards-clock handling and capacity-aware calendar fixes are described in [the 2.3.2 notes](RELEASE-2.3.2.md).
 
 **2.3.1:** Custom challenges start with a blank Unit field so its example placeholder is visible. Templates and existing challenges retain their units. [Neutral wording, rotating placeholders, cheeky reminders and weekly-review corrections](RELEASE-2.3.md). Reminders still require explicit opt-in and outstanding work.
 
@@ -28,6 +30,8 @@ The previous Stride APK remains in `dist/stride-debug.apk` as a historical build
 4. **Android reminders and widget:** per-challenge reminders recheck outstanding work at delivery time. The home-screen widget shows remaining effort, cycles through challenges, and logs a configurable amount without opening the app.
 5. **Forecasts and charts:** actual versus planned cumulative effort, estimated total-goal finish date, individual totals, training-day averages, streaks, and consistency calendar.
 6. **Repeat and compare:** create a clean calendar-month or same-duration challenge, linked to the original. Compare chapters, completion percentage, active days, and your best single day. Reminders start disabled on repeats.
+
+Logs now include an editable local time, including automatic times for quick-add and widget entries. Insights shows effort by morning (06:00–11:59), afternoon (12:00–17:59), evening (18:00–23:59), and night (00:00–05:59), separately for each challenge. Existing entries without times remain valid and are shown separately until a time is supplied. Times are retained in backups and are not shifted when travelling between time zones.
 
 Also includes editable dated logs with notes, delete confirmations, activity filtering, weekly log counts, and portable JSON backup/restore.
 

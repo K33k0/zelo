@@ -187,3 +187,15 @@ test('stored future-dated logs remain valid after a clock change and are exclude
   assert.equal(stats(c, '2099-01-01').total, 0);
   assert.equal(stats(c, '2099-01-02').total, 25);
 });
+
+test('log times survive backup restore and reject invalid clock values', () => {
+  const c = { ...base, logs: [{ ...log('2025-11-01', 25), time: '08:30' }] };
+  assert.equal(
+    parseBackup(JSON.stringify({ version: 1, challenges: [c] }))[0].logs[0].time,
+    '08:30',
+  );
+  for (const time of ['24:00', '12:60', '8:30', 123]) {
+    assert.throws(() => validateChallenge({ ...c, logs: [{ ...c.logs[0], time }] }));
+  }
+  validateChallenge({ ...base, logs: [log('2025-11-01', 25)] });
+});
